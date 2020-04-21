@@ -80,10 +80,10 @@ class PdfImage extends PdfXObject {
   }
 
   factory PdfImage.jpeg(
-    PdfDocument pdfDocument, {
-    @required Uint8List image,
-    PdfImageOrientation orientation,
-  }) {
+      PdfDocument pdfDocument, {
+        @required Uint8List image,
+        PdfImageOrientation orientation,
+      }) {
     assert(image != null);
 
     final PdfJpegInfo info = PdfJpegInfo(image);
@@ -107,6 +107,41 @@ class PdfImage extends PdfXObject {
 
     im.buf.putBytes(image);
     return im;
+  }
+
+  factory PdfImage.jpegSized(
+      PdfDocument pdfDocument, {
+        @required Uint8List image,
+        PdfImageOrientation orientation,
+      }) {
+    assert(image != null);
+
+    final PdfJpegInfo info = PdfJpegInfo(image);
+
+    final size = getSize(image);
+
+    final PdfImage im = PdfImage._(
+      pdfDocument,
+      size[0],
+      size[1],
+      orientation ?? info.orientation,
+    );
+
+    im.params['/BitsPerComponent'] = const PdfNum(8);
+    im.params['/Name'] = PdfName(im.name);
+    im.params['/Intent'] = const PdfName('/RelativeColorimetric');
+    im.params['/Filter'] = const PdfName('/DCTDecode');
+    im.params['/ColorSpace'] = const PdfName('/DeviceRGB');
+
+
+
+    im.buf.putBytes(image);
+    return im;
+  }
+
+  static List<int> getSize(Uint8List image) {
+    final im.DecodeInfo decodeInfo = im.JpegDecoder().startDecode(image);
+    return [decodeInfo.width, decodeInfo.height];
   }
 
   factory PdfImage.fromImage(
@@ -188,11 +223,11 @@ class PdfImage extends PdfXObject {
   }
 
   /// Image width
-  final int _width;
+  int _width;
   int get width => orientation.index >= 4 ? _height : _width;
 
   /// Image height
-  final int _height;
+  int _height;
   int get height => orientation.index < 4 ? _height : _width;
 
   /// The internal orientation of the image
